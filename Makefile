@@ -43,7 +43,7 @@ update: $(SRCDEP)
 
 vim-src/src/auto/config.status: $(SRCDEP)
 	cd vim-src && \
-	CFLAGS="-DFEAT_CONCEAL=1" LDFLAGS="-static" ./configure \
+	LDFLAGS="-rdynamic" ./configure \
 		--prefix=/dev/null/SET_THE_VIMRUNTIME_ENVIRONMENT_VARIABLE \
 		--disable-channel \
 		--disable-gpm \
@@ -55,38 +55,13 @@ vim-src/src/auto/config.status: $(SRCDEP)
 		--disable-smack \
 		--disable-sysmouse \
 		--disable-xsmp \
+		--enable-python3interp=yes \
+		--with-python3-command=/opt/python3.10/bin/python3 \
 		--enable-multibyte \
-		--with-features=normal \
-		--without-x
+		--with-features=huge \
+		--enable-fail-if-missing 
 
-vim-src/.config.h-modified: vim-src/src/auto/config.status
-	@echo 'Modifying available features:'
-	@if ! fgrep -q '#undef HAVE_GETPWNAM' vim-src/src/auto/config.h; then \
-		set -e; \
-		echo '#undef HAVE_GETPWNAM' >> vim-src/src/auto/config.h; \
-		echo '- Disabled getpwnam(3)'; \
-		touch $@; \
-	fi
-	@if ! fgrep -q '#undef HAVE_GETPWUID' vim-src/src/auto/config.h; then \
-		set -e; \
-		echo '#undef HAVE_GETPWUID' >> vim-src/src/auto/config.h; \
-		echo '- Disabled getpwuid(3)'; \
-		touch $@; \
-	fi
-	@if ! fgrep -q '#undef HAVE_GETPWENT' vim-src/src/auto/config.h; then \
-		set -e; \
-		echo '#undef HAVE_GETPWENT' >> vim-src/src/auto/config.h; \
-		echo '- Disabled getpwent(3)'; \
-		touch $@; \
-	fi
-	@if ! fgrep -q '#undef HAVE_DLOPEN' vim-src/src/auto/config.h; then \
-		set -e; \
-		echo '#undef HAVE_DLOPEN' >> vim-src/src/auto/config.h; \
-		echo '- Disabled dlopen(3)'; \
-		touch $@; \
-	fi
-
-vim-src/src/vim: vim-src/.config.h-modified
+vim-src/src/vim: vim-src/src/auto/config.status
 	cd vim-src && $(MAKE)
 
 $(INSTALLDIR)/vim: vim-src/src/vim
